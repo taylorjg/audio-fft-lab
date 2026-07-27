@@ -8,7 +8,7 @@ import {
   formatScopeTime,
   SCOPE_TIME_DIVISIONS,
   SCOPE_VOLTAGE_DIVISIONS,
-} from "../utils/scopeScale";
+} from "../utils/scope-scale";
 
 interface TeropaOscilloscopeProps {
   audioContextRef: RefObject<AudioContext | null>;

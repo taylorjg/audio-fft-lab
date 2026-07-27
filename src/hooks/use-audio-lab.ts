@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { findPeaks } from "../dsp/findPeaks";
-import { readFrequencyFrame } from "../dsp/readFrequencyFrame";
+import { findPeaks } from "../dsp/find-peaks";
+import { readFrequencyFrame } from "../dsp/read-frequency-frame";
 import type { FftEngine, FftSize, LabMeta, SineWaveConfig } from "../types";
 import { DEFAULT_FFT_ENGINE, DEFAULT_FFT_SIZE, DEFAULT_WAVES } from "../types";
 

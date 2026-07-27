@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-import { SpectrumAnalyzer } from "./components/SpectrumAnalyzer";
-import { TeropaOscilloscope } from "./components/TeropaOscilloscope";
-import { useAudioLab } from "./hooks/useAudioLab";
+import { SpectrumAnalyzer } from "./components/spectrum-analyzer";
+import { TeropaOscilloscope } from "./components/teropa-oscilloscope";
+import { useAudioLab } from "./hooks/use-audio-lab";
 import type {
   FftEngine,
   FftSize,
