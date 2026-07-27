@@ -1,27 +1,32 @@
-import { useEffect, useMemo, useRef, type RefObject } from 'react'
-import { readFrequencyFrame } from '../dsp/readFrequencyFrame'
-import type { FftEngine } from '../types'
-import type { PeakFrequency } from '../types'
-import { labelBandHeight, layoutPeakLabels, type PeakMarker } from '../utils/peakLabelLayout'
+import { type RefObject, useEffect, useMemo, useRef } from "react";
+
+import { readFrequencyFrame } from "../dsp/readFrequencyFrame";
+import type { FftEngine } from "../types";
+import type { PeakFrequency } from "../types";
+import {
+  labelBandHeight,
+  layoutPeakLabels,
+  type PeakMarker,
+} from "../utils/peakLabelLayout";
 
 interface SpectrumAnalyzerProps {
-  analyserRef: RefObject<AnalyserNode | null>
-  sampleRate: number
-  peaks: PeakFrequency[]
-  active: boolean
-  fftEngine: FftEngine
-  width?: number
-  height?: number
+  analyserRef: RefObject<AnalyserNode | null>;
+  sampleRate: number;
+  peaks: PeakFrequency[];
+  active: boolean;
+  fftEngine: FftEngine;
+  width?: number;
+  height?: number;
 }
 
-const MAX_FREQ = 2000
-const MIN_DB = -90
-const MAX_DB = 0
-const FREQ_TICKS = [0, 500, 1000, 1500, 2000]
-const TITLE_BAND = 18
-const BOTTOM_PADDING = 32
-const PLOT_LEFT = 48
-const PLOT_RIGHT_PAD = 16
+const MAX_FREQ = 2000;
+const MIN_DB = -90;
+const MAX_DB = 0;
+const FREQ_TICKS = [0, 500, 1000, 1500, 2000];
+const TITLE_BAND = 18;
+const BOTTOM_PADDING = 32;
+const PLOT_LEFT = 48;
+const PLOT_RIGHT_PAD = 16;
 
 function buildSpectrumPaths(
   frequencyData: Float32Array,
@@ -29,25 +34,28 @@ function buildSpectrumPaths(
   plotLeft: number,
   plotTop: number,
   plotWidth: number,
-  plotHeight: number,
+  plotHeight: number
 ): { linePath: string; fillPath: string } {
-  const binWidth = sampleRate / (frequencyData.length * 2)
-  const barCount = Math.min(frequencyData.length, Math.floor(MAX_FREQ / binWidth))
-  if (barCount <= 0) return { linePath: '', fillPath: '' }
+  const binWidth = sampleRate / (frequencyData.length * 2);
+  const barCount = Math.min(
+    frequencyData.length,
+    Math.floor(MAX_FREQ / binWidth)
+  );
+  if (barCount <= 0) return { linePath: "", fillPath: "" };
 
-  let linePath = ''
+  let linePath = "";
   for (let i = 0; i < barCount; i++) {
-    const db = frequencyData[i] ?? MIN_DB
-    const normalized = Math.max(0, (db - MIN_DB) / (MAX_DB - MIN_DB))
-    const barHeight = normalized * plotHeight
-    const x = plotLeft + (i / barCount) * plotWidth
-    const y = plotTop + plotHeight - barHeight
-    linePath += i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`
+    const db = frequencyData[i] ?? MIN_DB;
+    const normalized = Math.max(0, (db - MIN_DB) / (MAX_DB - MIN_DB));
+    const barHeight = normalized * plotHeight;
+    const x = plotLeft + (i / barCount) * plotWidth;
+    const y = plotTop + plotHeight - barHeight;
+    linePath += i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
   }
 
-  const baseY = plotTop + plotHeight
-  const fillPath = `${linePath} L ${plotLeft + plotWidth} ${baseY} L ${plotLeft} ${baseY} Z`
-  return { linePath, fillPath }
+  const baseY = plotTop + plotHeight;
+  const fillPath = `${linePath} L ${plotLeft + plotWidth} ${baseY} L ${plotLeft} ${baseY} Z`;
+  return { linePath, fillPath };
 }
 
 export function SpectrumAnalyzer({
@@ -59,101 +67,118 @@ export function SpectrumAnalyzer({
   width = 640,
   height = 220,
 }: SpectrumAnalyzerProps) {
-  const fillPathRef = useRef<SVGPathElement>(null)
-  const linePathRef = useRef<SVGPathElement>(null)
-  const rafRef = useRef(0)
-  const frequencyBufferRef = useRef<Float32Array | null>(null)
-  const timeBufferRef = useRef<Float32Array | null>(null)
-  const fftEngineRef = useRef(fftEngine)
-  fftEngineRef.current = fftEngine
+  const fillPathRef = useRef<SVGPathElement>(null);
+  const linePathRef = useRef<SVGPathElement>(null);
+  const rafRef = useRef(0);
+  const frequencyBufferRef = useRef<Float32Array | null>(null);
+  const timeBufferRef = useRef<Float32Array | null>(null);
 
-  const plotWidth = width - PLOT_LEFT - PLOT_RIGHT_PAD
-  const plotRight = width - PLOT_RIGHT_PAD
+  const plotWidth = width - PLOT_LEFT - PLOT_RIGHT_PAD;
+  const plotRight = width - PLOT_RIGHT_PAD;
 
   const visiblePeaks = useMemo(
     () => peaks.filter((p) => p.frequency <= MAX_FREQ),
-    [peaks],
-  )
+    [peaks]
+  );
 
   const labelLanes = useMemo(() => {
-    if (visiblePeaks.length === 0) return 0
+    if (visiblePeaks.length === 0) return 0;
 
     const xMarkers: PeakMarker[] = visiblePeaks.map((peak) => ({
       ...peak,
       x: PLOT_LEFT + (peak.frequency / MAX_FREQ) * plotWidth,
       y: 0,
-    }))
+    }));
 
-    const placed = layoutPeakLabels(xMarkers, PLOT_LEFT, plotRight, 100)
-    return placed.reduce((max, label) => Math.max(max, label.lane), 0)
-  }, [visiblePeaks, plotWidth, plotRight])
+    const placed = layoutPeakLabels(xMarkers, PLOT_LEFT, plotRight, 100);
+    return placed.reduce((max, label) => Math.max(max, label.lane), 0);
+  }, [visiblePeaks, plotWidth, plotRight]);
 
-  const bandHeight = labelBandHeight(labelLanes, visiblePeaks.length > 0)
-  const plotTop = TITLE_BAND + bandHeight + 6
-  const plotHeight = height - plotTop - BOTTOM_PADDING
-  const plotBottom = plotTop + plotHeight
+  const bandHeight = labelBandHeight(labelLanes, visiblePeaks.length > 0);
+  const plotTop = TITLE_BAND + bandHeight + 6;
+  const plotHeight = height - plotTop - BOTTOM_PADDING;
+  const plotBottom = plotTop + plotHeight;
 
   const peakMarkers = useMemo((): PeakMarker[] => {
     return visiblePeaks.map((peak) => {
-      const x = PLOT_LEFT + (peak.frequency / MAX_FREQ) * plotWidth
-      const normalized = Math.max(0, (peak.magnitudeDb - MIN_DB) / (MAX_DB - MIN_DB))
-      const y = plotTop + plotHeight - normalized * plotHeight
-      return { ...peak, x, y }
-    })
-  }, [visiblePeaks, plotWidth, plotTop, plotHeight])
+      const x = PLOT_LEFT + (peak.frequency / MAX_FREQ) * plotWidth;
+      const normalized = Math.max(
+        0,
+        (peak.magnitudeDb - MIN_DB) / (MAX_DB - MIN_DB)
+      );
+      const y = plotTop + plotHeight - normalized * plotHeight;
+      return { ...peak, x, y };
+    });
+  }, [visiblePeaks, plotWidth, plotTop, plotHeight]);
 
   const placedLabels = useMemo(
     () => layoutPeakLabels(peakMarkers, PLOT_LEFT, plotRight, plotTop),
-    [peakMarkers, plotRight, plotTop],
-  )
+    [peakMarkers, plotRight, plotTop]
+  );
 
   useEffect(() => {
     if (!active) {
-      cancelAnimationFrame(rafRef.current)
-      fillPathRef.current?.setAttribute('d', '')
-      linePathRef.current?.setAttribute('d', '')
-      return
+      cancelAnimationFrame(rafRef.current);
+      fillPathRef.current?.setAttribute("d", "");
+      linePathRef.current?.setAttribute("d", "");
+      return;
     }
 
     const tick = () => {
-      const analyser = analyserRef.current
-      const fillPathEl = fillPathRef.current
-      const linePathEl = linePathRef.current
+      const analyser = analyserRef.current;
+      const fillPathEl = fillPathRef.current;
+      const linePathEl = linePathRef.current;
 
       if (analyser && fillPathEl && linePathEl) {
-        if (!frequencyBufferRef.current || frequencyBufferRef.current.length !== analyser.frequencyBinCount) {
-          frequencyBufferRef.current = new Float32Array(analyser.frequencyBinCount)
+        if (
+          !frequencyBufferRef.current ||
+          frequencyBufferRef.current.length !== analyser.frequencyBinCount
+        ) {
+          frequencyBufferRef.current = new Float32Array(
+            analyser.frequencyBinCount
+          );
         }
-        if (!timeBufferRef.current || timeBufferRef.current.length !== analyser.fftSize) {
-          timeBufferRef.current = new Float32Array(analyser.fftSize)
+        if (
+          !timeBufferRef.current ||
+          timeBufferRef.current.length !== analyser.fftSize
+        ) {
+          timeBufferRef.current = new Float32Array(analyser.fftSize);
         }
 
         readFrequencyFrame(
           analyser,
-          fftEngineRef.current,
+          fftEngine,
           frequencyBufferRef.current,
-          timeBufferRef.current,
-        )
+          timeBufferRef.current
+        );
         const paths = buildSpectrumPaths(
           frequencyBufferRef.current,
           sampleRate,
           PLOT_LEFT,
           plotTop,
           plotWidth,
-          plotHeight,
-        )
-        fillPathEl.setAttribute('d', paths.fillPath)
-        linePathEl.setAttribute('d', paths.linePath)
+          plotHeight
+        );
+        fillPathEl.setAttribute("d", paths.fillPath);
+        linePathEl.setAttribute("d", paths.linePath);
       }
 
-      rafRef.current = requestAnimationFrame(tick)
-    }
+      rafRef.current = requestAnimationFrame(tick);
+    };
 
-    rafRef.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafRef.current)
-  }, [active, analyserRef, sampleRate, plotTop, plotWidth, plotHeight])
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [
+    active,
+    analyserRef,
+    fftEngine,
+    sampleRate,
+    plotTop,
+    plotWidth,
+    plotHeight,
+  ]);
 
-  const dbLines = [-20, -40, -60, -80]
+  const dbLines = [-20, -40, -60, -80];
 
   return (
     <svg
@@ -173,7 +198,10 @@ export function SpectrumAnalyzer({
       />
 
       {dbLines.map((db) => {
-        const y = plotTop + plotHeight - ((db - MIN_DB) / (MAX_DB - MIN_DB)) * plotHeight
+        const y =
+          plotTop +
+          plotHeight -
+          ((db - MIN_DB) / (MAX_DB - MIN_DB)) * plotHeight;
         return (
           <g key={db}>
             <line
@@ -183,23 +211,39 @@ export function SpectrumAnalyzer({
               y2={y}
               className="grid-minor"
             />
-            <text x={PLOT_LEFT - 6} y={y + 4} className="axis-label" textAnchor="end">
+            <text
+              x={PLOT_LEFT - 6}
+              y={y + 4}
+              className="axis-label"
+              textAnchor="end"
+            >
               {db}
             </text>
           </g>
-        )
+        );
       })}
 
       {FREQ_TICKS.map((freq) => {
-        const x = PLOT_LEFT + (freq / MAX_FREQ) * plotWidth
+        const x = PLOT_LEFT + (freq / MAX_FREQ) * plotWidth;
         return (
           <g key={freq}>
-            <line x1={x} y1={plotTop} x2={x} y2={plotBottom} className="grid-minor" />
-            <text x={x} y={plotBottom + 12} className="axis-label" textAnchor="middle">
+            <line
+              x1={x}
+              y1={plotTop}
+              x2={x}
+              y2={plotBottom}
+              className="grid-minor"
+            />
+            <text
+              x={x}
+              y={plotBottom + 12}
+              className="axis-label"
+              textAnchor="middle"
+            >
               {freq}
             </text>
           </g>
-        )
+        );
       })}
 
       <path ref={fillPathRef} className="spectrum-fill" />
@@ -225,18 +269,28 @@ export function SpectrumAnalyzer({
             y2={peak.y - 3}
             className="peak-leader"
           />
-          <text x={peak.labelX} y={peak.labelY} className="peak-label" textAnchor="middle">
+          <text
+            x={peak.labelX}
+            y={peak.labelY}
+            className="peak-label"
+            textAnchor="middle"
+          >
             {Math.round(peak.frequency)} Hz
           </text>
         </g>
       ))}
 
       <text x={PLOT_LEFT} y={14} className="scope-label">
-        FFT {fftEngine === 'custom' ? '(custom)' : '(Web Audio)'}
+        FFT {fftEngine === "custom" ? "(custom)" : "(Web Audio)"}
       </text>
-      <text x={PLOT_LEFT + plotWidth} y={14} className="scope-readout" textAnchor="end">
+      <text
+        x={PLOT_LEFT + plotWidth}
+        y={14}
+        className="scope-readout"
+        textAnchor="end"
+      >
         0 – {MAX_FREQ} Hz
       </text>
     </svg>
-  )
+  );
 }

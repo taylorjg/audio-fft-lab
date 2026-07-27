@@ -1,10 +1,17 @@
-import { useState } from 'react'
-import { useAudioLab } from './hooks/useAudioLab'
-import { TeropaOscilloscope } from './components/TeropaOscilloscope'
-import { SpectrumAnalyzer } from './components/SpectrumAnalyzer'
-import { APP_VERSION } from './version'
-import type { FftEngine, FftSize, PeakFrequency, ScopeTriggerMode, SineWaveConfig } from './types'
-import { DEFAULT_SCOPE_TRIGGER, FFT_SIZE_OPTIONS } from './types'
+import { useState } from "react";
+
+import { SpectrumAnalyzer } from "./components/SpectrumAnalyzer";
+import { TeropaOscilloscope } from "./components/TeropaOscilloscope";
+import { useAudioLab } from "./hooks/useAudioLab";
+import type {
+  FftEngine,
+  FftSize,
+  PeakFrequency,
+  ScopeTriggerMode,
+  SineWaveConfig,
+} from "./types";
+import { DEFAULT_SCOPE_TRIGGER, FFT_SIZE_OPTIONS } from "./types";
+import { APP_VERSION } from "./version";
 
 function WaveControl({
   wave,
@@ -12,13 +19,13 @@ function WaveControl({
   onRemove,
   canRemove,
 }: {
-  wave: SineWaveConfig
-  onChange: (patch: Partial<SineWaveConfig>) => void
-  onRemove: () => void
-  canRemove: boolean
+  wave: SineWaveConfig;
+  onChange: (patch: Partial<SineWaveConfig>) => void;
+  onRemove: () => void;
+  canRemove: boolean;
 }) {
   return (
-    <div className={`wave-control ${wave.enabled ? '' : 'disabled'}`}>
+    <div className={`wave-control ${wave.enabled ? "" : "disabled"}`}>
       <label className="wave-toggle">
         <input
           type="checkbox"
@@ -55,12 +62,17 @@ function WaveControl({
       </label>
 
       {canRemove && (
-        <button type="button" className="btn-ghost" onClick={onRemove} aria-label="Remove wave">
+        <button
+          type="button"
+          className="btn-ghost"
+          onClick={onRemove}
+          aria-label="Remove wave"
+        >
           ×
         </button>
       )}
     </div>
-  )
+  );
 }
 
 export default function App() {
@@ -82,9 +94,11 @@ export default function App() {
     updateWave,
     addWave,
     removeWave,
-  } = useAudioLab()
+  } = useAudioLab();
 
-  const [triggerMode, setTriggerMode] = useState<ScopeTriggerMode>(DEFAULT_SCOPE_TRIGGER)
+  const [triggerMode, setTriggerMode] = useState<ScopeTriggerMode>(
+    DEFAULT_SCOPE_TRIGGER
+  );
 
   return (
     <div className="app">
@@ -95,13 +109,17 @@ export default function App() {
             <span className="app-version">v{APP_VERSION}</span>
           </h1>
           <p className="subtitle">
-            Synthesise combined sine waves with the Web Audio API, then inspect the time-domain
-            signal and frequency spectrum in real time.
+            Synthesise combined sine waves with the Web Audio API, then inspect
+            the time-domain signal and frequency spectrum in real time.
           </p>
         </div>
         <div className="transport">
           {!running ? (
-            <button type="button" className="btn-primary" onClick={() => void start()}>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => void start()}
+            >
               Start
             </button>
           ) : (
@@ -179,7 +197,9 @@ export default function App() {
               <span>Scope trigger</span>
               <select
                 value={triggerMode}
-                onChange={(e) => setTriggerMode(e.target.value as ScopeTriggerMode)}
+                onChange={(e) =>
+                  setTriggerMode(e.target.value as ScopeTriggerMode)
+                }
               >
                 <option value="edge">Edge (stable trace)</option>
                 <option value="free">Free-running (rolling)</option>
@@ -210,20 +230,24 @@ export default function App() {
                 ))}
               </select>
               <output>
-                {(labMeta.sampleRate / labMeta.fftSize).toFixed(2)} Hz/bin
+                {(labMeta.sampleRate / fftSize).toFixed(2)} Hz/bin
               </output>
             </label>
           </div>
 
           <div className="meta">
             <span>Sample rate: {labMeta.sampleRate.toLocaleString()} Hz</span>
-            <span>FFT size: {labMeta.fftSize}</span>
-            <span>Bin width: {(labMeta.sampleRate / labMeta.fftSize).toFixed(2)} Hz</span>
-            <span>FFT engine: {fftEngine === 'custom' ? 'Custom' : 'Web Audio'}</span>
-            <span>Status: {running ? 'Running' : 'Idle'}</span>
+            <span>FFT size: {fftSize}</span>
+            <span>
+              Bin width: {(labMeta.sampleRate / fftSize).toFixed(2)} Hz
+            </span>
+            <span>
+              FFT engine: {fftEngine === "custom" ? "Custom" : "Web Audio"}
+            </span>
+            <span>Status: {running ? "Running" : "Idle"}</span>
           </div>
         </section>
       </main>
     </div>
-  )
+  );
 }
