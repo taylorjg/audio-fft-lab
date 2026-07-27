@@ -1,7 +1,8 @@
 {
   "name": "audio-fft-lab",
+  "description": "React/TypeScript lab for sine-wave synthesis, real-time FFT spectrum analysis, and oscilloscope visualisation using the Web Audio API",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",

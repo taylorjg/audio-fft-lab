@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useAudioLab } from './hooks/useAudioLab'
 import { TeropaOscilloscope } from './components/TeropaOscilloscope'
 import { SpectrumAnalyzer } from './components/SpectrumAnalyzer'
-import type { FftSize, PeakFrequency, ScopeTriggerMode, SineWaveConfig } from './types'
+import { APP_VERSION } from './version'
+import type { FftEngine, FftSize, PeakFrequency, ScopeTriggerMode, SineWaveConfig } from './types'
 import { DEFAULT_SCOPE_TRIGGER, FFT_SIZE_OPTIONS } from './types'
 
 function WaveControl({
@@ -68,6 +69,7 @@ export default function App() {
     running,
     muted,
     fftSize,
+    fftEngine,
     labMeta,
     analyserRef,
     audioContextRef,
@@ -76,6 +78,7 @@ export default function App() {
     stop,
     setMuted,
     setFftSize,
+    setFftEngine,
     updateWave,
     addWave,
     removeWave,
@@ -87,7 +90,10 @@ export default function App() {
     <div className="app">
       <header className="header">
         <div>
-          <h1>Audio FFT Lab</h1>
+          <h1>
+            Audio FFT Lab
+            <span className="app-version">v{APP_VERSION}</span>
+          </h1>
           <p className="subtitle">
             Synthesise combined sine waves with the Web Audio API, then inspect the time-domain
             signal and frequency spectrum in real time.
@@ -130,6 +136,7 @@ export default function App() {
             sampleRate={labMeta.sampleRate}
             peaks={labMeta.peakFrequencies}
             active={running}
+            fftEngine={fftEngine}
           />
 
           {labMeta.peakFrequencies.length > 0 && (
@@ -180,6 +187,17 @@ export default function App() {
             </label>
 
             <label>
+              <span>FFT engine</span>
+              <select
+                value={fftEngine}
+                onChange={(e) => setFftEngine(e.target.value as FftEngine)}
+              >
+                <option value="web-audio">Web Audio AnalyserNode</option>
+                <option value="custom">Custom (radix-2 + Hann)</option>
+              </select>
+            </label>
+
+            <label>
               <span>FFT size</span>
               <select
                 value={fftSize}
@@ -201,6 +219,7 @@ export default function App() {
             <span>Sample rate: {labMeta.sampleRate.toLocaleString()} Hz</span>
             <span>FFT size: {labMeta.fftSize}</span>
             <span>Bin width: {(labMeta.sampleRate / labMeta.fftSize).toFixed(2)} Hz</span>
+            <span>FFT engine: {fftEngine === 'custom' ? 'Custom' : 'Web Audio'}</span>
             <span>Status: {running ? 'Running' : 'Idle'}</span>
           </div>
         </section>

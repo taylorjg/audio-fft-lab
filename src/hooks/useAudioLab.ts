@@ -1,45 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { FftSize, LabMeta, PeakFrequency, SineWaveConfig } from '../types'
-import { DEFAULT_FFT_SIZE, DEFAULT_WAVES } from '../types'
+import { findPeaks } from '../dsp/findPeaks'
+import { readFrequencyFrame } from '../dsp/readFrequencyFrame'
+import type { FftEngine, FftSize, LabMeta, SineWaveConfig } from '../types'
+import { DEFAULT_FFT_ENGINE, DEFAULT_FFT_SIZE, DEFAULT_WAVES } from '../types'
 
 const SMOOTHING = 0.75
 const PEAK_UPDATE_MS = 250
-
-function findPeaks(
-  frequencyData: Float32Array,
-  sampleRate: number,
-  fftSize: number,
-  thresholdDb = -55,
-  maxPeaks = 8,
-): PeakFrequency[] {
-  const binWidth = sampleRate / fftSize
-  const peaks: PeakFrequency[] = []
-
-  for (let i = 2; i < frequencyData.length - 2; i++) {
-    const value = frequencyData[i]
-    if (value === undefined || value < thresholdDb) continue
-
-    const prev = frequencyData[i - 1] ?? -Infinity
-    const next = frequencyData[i + 1] ?? -Infinity
-    const prev2 = frequencyData[i - 2] ?? -Infinity
-    const next2 = frequencyData[i + 2] ?? -Infinity
-
-    if (value > prev && value > next && value > prev2 && value > next2) {
-      peaks.push({ frequency: i * binWidth, magnitudeDb: value })
-    }
-  }
-
-  return peaks
-    .sort((a, b) => b.magnitudeDb - a.magnitudeDb)
-    .slice(0, maxPeaks)
-    .sort((a, b) => a.frequency - b.frequency)
-}
 
 export function useAudioLab() {
   const [waves, setWaves] = useState<SineWaveConfig[]>(DEFAULT_WAVES)
   const [running, setRunning] = useState(false)
   const [muted, setMuted] = useState(false)
   const [fftSize, setFftSizeState] = useState<FftSize>(DEFAULT_FFT_SIZE)
+  const [fftEngine, setFftEngineState] = useState<FftEngine>(DEFAULT_FFT_ENGINE)
   const [labMeta, setLabMeta] = useState<LabMeta>({
     sampleRate: 48000,
     fftSize: DEFAULT_FFT_SIZE,
@@ -54,8 +27,10 @@ export function useAudioLab() {
   const lastPeakUpdateRef = useRef(0)
   const wavesRef = useRef(waves)
   const fftSizeRef = useRef(fftSize)
+  const fftEngineRef = useRef(fftEngine)
   wavesRef.current = waves
   fftSizeRef.current = fftSize
+  fftEngineRef.current = fftEngine
 
   const stopAnalysisLoop = useCallback(() => {
     cancelAnimationFrame(rafRef.current)
@@ -127,9 +102,10 @@ export function useAudioLab() {
     lastPeakUpdateRef.current = 0
 
     const frequencyDomain = new Float32Array(analyser.frequencyBinCount)
+    const timeDomain = new Float32Array(analyser.fftSize)
 
     const tick = (now: number) => {
-      analyser.getFloatFrequencyData(frequencyDomain)
+      readFrequencyFrame(analyser, fftEngineRef.current, frequencyDomain, timeDomain)
 
       if (now - lastPeakUpdateRef.current >= PEAK_UPDATE_MS) {
         lastPeakUpdateRef.current = now
@@ -190,6 +166,11 @@ export function useAudioLab() {
   const setFftSize = useCallback((size: FftSize) => {
     setFftSizeState(size)
   }, [])
+
+  const setFftEngine = useCallback((engine: FftEngine) => {
+    setFftEngineState(engine)
+    if (running) startAnalysisLoop()
+  }, [running, startAnalysisLoop])
 
   useEffect(() => {
     if (running) syncOscillators()
@@ -261,6 +242,7 @@ export function useAudioLab() {
     running,
     muted,
     fftSize,
+    fftEngine,
     labMeta,
     analyserRef,
     audioContextRef,
@@ -269,6 +251,7 @@ export function useAudioLab() {
     stop,
     setMuted,
     setFftSize,
+    setFftEngine,
     updateWave,
     addWave,
     removeWave,

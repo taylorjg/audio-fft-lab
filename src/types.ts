@@ -23,6 +23,9 @@ export const DEFAULT_FFT_SIZE: FftSize = 2048
 export type ScopeTriggerMode = 'edge' | 'free'
 export const DEFAULT_SCOPE_TRIGGER: ScopeTriggerMode = 'edge'
 
+export type FftEngine = 'web-audio' | 'custom'
+export const DEFAULT_FFT_ENGINE: FftEngine = 'web-audio'
+
 // Cmaj7 in equal temperament (A4 = 440 Hz): C4, E4, G4, B4
 export const DEFAULT_WAVES: SineWaveConfig[] = [
   { id: 'c', frequency: 261.63, amplitude: 0.35, enabled: true },

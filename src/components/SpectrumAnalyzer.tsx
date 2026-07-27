@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
+import { readFrequencyFrame } from '../dsp/readFrequencyFrame'
+import type { FftEngine } from '../types'
 import type { PeakFrequency } from '../types'
 import { labelBandHeight, layoutPeakLabels, type PeakMarker } from '../utils/peakLabelLayout'
 
@@ -7,6 +9,7 @@ interface SpectrumAnalyzerProps {
   sampleRate: number
   peaks: PeakFrequency[]
   active: boolean
+  fftEngine: FftEngine
   width?: number
   height?: number
 }
@@ -52,13 +55,17 @@ export function SpectrumAnalyzer({
   sampleRate,
   peaks,
   active,
+  fftEngine,
   width = 640,
   height = 220,
 }: SpectrumAnalyzerProps) {
   const fillPathRef = useRef<SVGPathElement>(null)
   const linePathRef = useRef<SVGPathElement>(null)
   const rafRef = useRef(0)
-  const bufferRef = useRef<Float32Array | null>(null)
+  const frequencyBufferRef = useRef<Float32Array | null>(null)
+  const timeBufferRef = useRef<Float32Array | null>(null)
+  const fftEngineRef = useRef(fftEngine)
+  fftEngineRef.current = fftEngine
 
   const plotWidth = width - PLOT_LEFT - PLOT_RIGHT_PAD
   const plotRight = width - PLOT_RIGHT_PAD
@@ -114,13 +121,21 @@ export function SpectrumAnalyzer({
       const linePathEl = linePathRef.current
 
       if (analyser && fillPathEl && linePathEl) {
-        if (!bufferRef.current || bufferRef.current.length !== analyser.frequencyBinCount) {
-          bufferRef.current = new Float32Array(analyser.frequencyBinCount)
+        if (!frequencyBufferRef.current || frequencyBufferRef.current.length !== analyser.frequencyBinCount) {
+          frequencyBufferRef.current = new Float32Array(analyser.frequencyBinCount)
+        }
+        if (!timeBufferRef.current || timeBufferRef.current.length !== analyser.fftSize) {
+          timeBufferRef.current = new Float32Array(analyser.fftSize)
         }
 
-        analyser.getFloatFrequencyData(bufferRef.current)
+        readFrequencyFrame(
+          analyser,
+          fftEngineRef.current,
+          frequencyBufferRef.current,
+          timeBufferRef.current,
+        )
         const paths = buildSpectrumPaths(
-          bufferRef.current,
+          frequencyBufferRef.current,
           sampleRate,
           PLOT_LEFT,
           plotTop,
@@ -217,7 +232,7 @@ export function SpectrumAnalyzer({
       ))}
 
       <text x={PLOT_LEFT} y={14} className="scope-label">
-        FFT
+        FFT {fftEngine === 'custom' ? '(custom)' : '(Web Audio)'}
       </text>
       <text x={PLOT_LEFT + plotWidth} y={14} className="scope-readout" textAnchor="end">
         0 – {MAX_FREQ} Hz
