@@ -1,20 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import { findPeaks } from "../dsp/find-peaks";
-import { readFrequencyFrame } from "../dsp/read-frequency-frame";
+import { findPeaks } from "@app/dsp/find-peaks";
+import { readFrequencyFrame } from "@app/dsp/read-frequency-frame";
 import type {
   FftEngine,
   FftSize,
   InputSource,
   LabMeta,
   SineWaveConfig,
-} from "../types";
+} from "@app/types";
 import {
   DEFAULT_FFT_ENGINE,
   DEFAULT_FFT_SIZE,
   DEFAULT_INPUT_SOURCE,
   DEFAULT_WAVES,
-} from "../types";
+} from "@app/types";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const SMOOTHING = 0.75;
 const PEAK_UPDATE_MS = 250;

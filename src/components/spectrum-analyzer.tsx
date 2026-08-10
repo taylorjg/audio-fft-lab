@@ -1,13 +1,12 @@
-import { type RefObject, useEffect, useMemo, useRef } from "react";
-
-import { readFrequencyFrame } from "../dsp/read-frequency-frame";
-import type { FftEngine } from "../types";
-import type { PeakFrequency } from "../types";
+import { readFrequencyFrame } from "@app/dsp/read-frequency-frame";
+import type { FftEngine } from "@app/types";
+import type { PeakFrequency } from "@app/types";
 import {
   labelBandHeight,
   layoutPeakLabels,
   type PeakMarker,
-} from "../utils/peak-label-layout";
+} from "@app/utils/peak-label-layout";
+import { type RefObject, useEffect, useMemo, useRef } from "react";
 
 interface SpectrumAnalyzerProps {
   analyserRef?: RefObject<AnalyserNode | null>;

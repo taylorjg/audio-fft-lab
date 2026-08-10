@@ -2,7 +2,7 @@ import {
   estimateLabelWidth,
   labelBandHeight,
   layoutPeakLabels,
-} from "./peak-label-layout";
+} from "@app/utils/peak-label-layout";
 
 describe("peak-label-layout", () => {
   it("estimates label width from text length", () => {

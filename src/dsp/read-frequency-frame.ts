@@ -1,5 +1,5 @@
-import type { FftEngine } from "../types";
-import { computeMagnitudeSpectrumDb } from "./magnitude-spectrum";
+import { computeMagnitudeSpectrumDb } from "@app/dsp/magnitude-spectrum";
+import type { FftEngine } from "@app/types";
 
 export function readFrequencyFrame(
   analyser: AnalyserNode,

@@ -1,14 +1,13 @@
-import { Oscilloscope as TeropaScope } from "@teropa/oscilloscope";
-import { type RefObject, useEffect, useMemo, useRef } from "react";
-
-import type { FftSize, ScopeTriggerMode } from "../types";
+import type { FftSize, ScopeTriggerMode } from "@app/types";
 import {
   computeScopeScale,
   formatScopeAmplitude,
   formatScopeTime,
   SCOPE_TIME_DIVISIONS,
   SCOPE_VOLTAGE_DIVISIONS,
-} from "../utils/scope-scale";
+} from "@app/utils/scope-scale";
+import { Oscilloscope as TeropaScope } from "@teropa/oscilloscope";
+import { type RefObject, useEffect, useMemo, useRef } from "react";
 
 interface TeropaOscilloscopeProps {
   audioContextRef: RefObject<AudioContext | null>;

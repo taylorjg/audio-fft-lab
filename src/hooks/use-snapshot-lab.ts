@@ -1,14 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import { renderSnapshot } from "../dsp/render-snapshot";
+import { renderSnapshot } from "@app/dsp/render-snapshot";
 import type {
   FftEngine,
   FftSize,
   SineWaveConfig,
   SnapshotResult,
   SnapshotSampleRate,
-} from "../types";
-import { DEFAULT_SNAPSHOT_SAMPLE_RATE } from "../types";
+} from "@app/types";
+import { DEFAULT_SNAPSHOT_SAMPLE_RATE } from "@app/types";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useSnapshotLab(
   enabled: boolean,

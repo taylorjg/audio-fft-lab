@@ -1,13 +1,12 @@
-import { useMemo } from "react";
-
-import type { FftSize } from "../types";
+import type { FftSize } from "@app/types";
 import {
   computeScopeScale,
   formatScopeAmplitude,
   formatScopeTime,
   SCOPE_TIME_DIVISIONS,
   SCOPE_VOLTAGE_DIVISIONS,
-} from "../utils/scope-scale";
+} from "@app/utils/scope-scale";
+import { useMemo } from "react";
 
 interface StaticWaveformProps {
   timeDomain: Float32Array;

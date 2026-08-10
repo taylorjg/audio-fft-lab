@@ -1,9 +1,9 @@
-import { makeSineFrame, peakBinIndex } from "../test/sine-frame";
 import {
   computeMagnitudeSpectrumDb,
   hannWindow,
   linearToDb,
-} from "./magnitude-spectrum";
+} from "@app/dsp/magnitude-spectrum";
+import { makeSineFrame, peakBinIndex } from "@app/test/sine-frame";
 
 describe("linearToDb", () => {
   it("converts unity gain near 0 dB", () => {

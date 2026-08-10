@@ -3,7 +3,7 @@ import {
   formatScopeAmplitude,
   formatScopeTime,
   SCOPE_TIME_DIVISIONS,
-} from "./scope-scale";
+} from "@app/utils/scope-scale";
 
 describe("computeScopeScale", () => {
   it("derives window length from fftSize / 2 samples", () => {

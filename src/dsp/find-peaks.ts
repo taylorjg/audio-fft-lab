@@ -1,4 +1,4 @@
-import type { PeakFrequency } from "../types";
+import type { PeakFrequency } from "@app/types";
 
 export function findPeaks(
   frequencyData: Float32Array,

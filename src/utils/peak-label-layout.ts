@@ -1,4 +1,4 @@
-import type { PeakFrequency } from "../types";
+import type { PeakFrequency } from "@app/types";
 
 export interface PeakMarker extends PeakFrequency {
   x: number;

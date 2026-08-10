@@ -1,10 +1,8 @@
-import { useState } from "react";
-
-import { SpectrumAnalyzer } from "./components/spectrum-analyzer";
-import { StaticWaveform } from "./components/static-waveform";
-import { TeropaOscilloscope } from "./components/teropa-oscilloscope";
-import { useAudioLab } from "./hooks/use-audio-lab";
-import { useSnapshotLab } from "./hooks/use-snapshot-lab";
+import { SpectrumAnalyzer } from "@app/components/spectrum-analyzer";
+import { StaticWaveform } from "@app/components/static-waveform";
+import { TeropaOscilloscope } from "@app/components/teropa-oscilloscope";
+import { useAudioLab } from "@app/hooks/use-audio-lab";
+import { useSnapshotLab } from "@app/hooks/use-snapshot-lab";
 import type {
   FftEngine,
   FftSize,
@@ -14,7 +12,7 @@ import type {
   ScopeTriggerMode,
   SineWaveConfig,
   SnapshotSampleRate,
-} from "./types";
+} from "@app/types";
 import {
   DEFAULT_LAB_MODE,
   DEFAULT_SCOPE_TRIGGER,
@@ -22,8 +20,9 @@ import {
   INPUT_SOURCE_LABELS,
   LAB_MODE_LABELS,
   SNAPSHOT_SAMPLE_RATES,
-} from "./types";
-import { APP_VERSION } from "./version";
+} from "@app/types";
+import { APP_VERSION } from "@app/version";
+import { useState } from "react";
 
 function WaveControl({
   wave,
