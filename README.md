@@ -18,6 +18,12 @@ npm install
 npm run dev
 ```
 
+### Tests
+
+```bash
+npm test
+```
+
 Open the URL shown in the terminal (typically http://localhost:5173).
 
 ### Live mode
