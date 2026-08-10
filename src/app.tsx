@@ -1,20 +1,27 @@
 import { useState } from "react";
 
 import { SpectrumAnalyzer } from "./components/spectrum-analyzer";
+import { StaticWaveform } from "./components/static-waveform";
 import { TeropaOscilloscope } from "./components/teropa-oscilloscope";
 import { useAudioLab } from "./hooks/use-audio-lab";
+import { useSnapshotLab } from "./hooks/use-snapshot-lab";
 import type {
   FftEngine,
   FftSize,
   InputSource,
+  LabMode,
   PeakFrequency,
   ScopeTriggerMode,
   SineWaveConfig,
+  SnapshotSampleRate,
 } from "./types";
 import {
+  DEFAULT_LAB_MODE,
   DEFAULT_SCOPE_TRIGGER,
   FFT_SIZE_OPTIONS,
   INPUT_SOURCE_LABELS,
+  LAB_MODE_LABELS,
+  SNAPSHOT_SAMPLE_RATES,
 } from "./types";
 import { APP_VERSION } from "./version";
 
@@ -81,8 +88,14 @@ function WaveControl({
 }
 
 const INPUT_SOURCES: InputSource[] = ["synthesizer", "microphone"];
+const LAB_MODES: LabMode[] = ["live", "snapshot"];
 
 export default function App() {
+  const [labMode, setLabMode] = useState<LabMode>(DEFAULT_LAB_MODE);
+  const [triggerMode, setTriggerMode] = useState<ScopeTriggerMode>(
+    DEFAULT_SCOPE_TRIGGER
+  );
+
   const {
     waves,
     running,
@@ -109,9 +122,30 @@ export default function App() {
     removeWave,
   } = useAudioLab();
 
-  const [triggerMode, setTriggerMode] = useState<ScopeTriggerMode>(
-    DEFAULT_SCOPE_TRIGGER
-  );
+  const isSnapshotMode = labMode === "snapshot";
+  const {
+    sampleRate: snapshotSampleRate,
+    snapshot,
+    rendering,
+    error: snapshotError,
+    render: renderSnapshot,
+    setSampleRate: setSnapshotSampleRate,
+  } = useSnapshotLab(isSnapshotMode, waves, fftSize, fftEngine);
+
+  const displaySampleRate = isSnapshotMode
+    ? (snapshot?.sampleRate ?? snapshotSampleRate)
+    : labMeta.sampleRate;
+  const displayPeaks = isSnapshotMode
+    ? (snapshot?.peakFrequencies ?? [])
+    : labMeta.peakFrequencies;
+
+  const onLabModeChange = (mode: LabMode) => {
+    if (mode === "snapshot" && running) stop();
+    if (mode === "snapshot" && inputSource === "microphone") {
+      void setInputSource("synthesizer");
+    }
+    setLabMode(mode);
+  };
 
   return (
     <div className="app">
@@ -122,13 +156,22 @@ export default function App() {
             <span className="app-version">v{APP_VERSION}</span>
           </h1>
           <p className="subtitle">
-            Analyse live audio from built-in sine oscillators or your
-            microphone. Inspect the waveform and frequency spectrum in real time
-            with the Web Audio API.
+            Analyse sine-wave synthesis live or render an offline snapshot at a
+            chosen sample rate. Inspect the waveform and frequency spectrum with
+            the Web Audio API.
           </p>
         </div>
         <div className="transport">
-          {!running ? (
+          {isSnapshotMode ? (
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={rendering}
+              onClick={() => void renderSnapshot()}
+            >
+              {rendering ? "Rendering…" : "Render snapshot"}
+            </button>
+          ) : !running ? (
             <button
               type="button"
               className="btn-primary"
@@ -141,41 +184,71 @@ export default function App() {
               Stop
             </button>
           )}
-          <label className="mute-toggle">
-            <input
-              type="checkbox"
-              checked={!muted}
-              disabled={!running}
-              onChange={(e) => setMuted(!e.target.checked)}
-            />
-            <span>Monitor audio</span>
-          </label>
+          {!isSnapshotMode && (
+            <label className="mute-toggle">
+              <input
+                type="checkbox"
+                checked={!muted}
+                disabled={!running}
+                onChange={(e) => setMuted(!e.target.checked)}
+              />
+              <span>Monitor audio</span>
+            </label>
+          )}
         </div>
       </header>
 
       <main className="main">
         <section className="panel displays">
-          <TeropaOscilloscope
-            audioContextRef={audioContextRef}
-            audioSourceRef={signalSourceRef}
-            active={running}
-            fftSize={fftSize}
-            sampleRate={labMeta.sampleRate}
-            triggerMode={triggerMode}
-          />
-          <SpectrumAnalyzer
-            analyserRef={analyserRef}
-            sampleRate={labMeta.sampleRate}
-            peaks={labMeta.peakFrequencies}
-            active={running}
-            fftEngine={fftEngine}
-          />
+          {isSnapshotMode ? (
+            snapshot ? (
+              <>
+                <StaticWaveform
+                  timeDomain={snapshot.timeDomain}
+                  sampleRate={snapshot.sampleRate}
+                  fftSize={snapshot.fftSize}
+                />
+                <SpectrumAnalyzer
+                  frequencyData={snapshot.frequencyDomain}
+                  sampleRate={snapshot.sampleRate}
+                  peaks={snapshot.peakFrequencies}
+                  active={false}
+                  fftEngine={fftEngine}
+                />
+              </>
+            ) : (
+              <p className="display-placeholder" role="status">
+                {rendering
+                  ? "Rendering offline snapshot…"
+                  : (snapshotError ??
+                    "Adjust synthesizer settings and render a snapshot.")}
+              </p>
+            )
+          ) : (
+            <>
+              <TeropaOscilloscope
+                audioContextRef={audioContextRef}
+                audioSourceRef={signalSourceRef}
+                active={running}
+                fftSize={fftSize}
+                sampleRate={labMeta.sampleRate}
+                triggerMode={triggerMode}
+              />
+              <SpectrumAnalyzer
+                analyserRef={analyserRef}
+                sampleRate={labMeta.sampleRate}
+                peaks={labMeta.peakFrequencies}
+                active={running}
+                fftEngine={fftEngine}
+              />
+            </>
+          )}
 
-          {labMeta.peakFrequencies.length > 0 && (
+          {displayPeaks.length > 0 && (
             <div className="peak-summary">
               <h3>Detected peaks</h3>
               <ul>
-                {labMeta.peakFrequencies.map((peak: PeakFrequency) => (
+                {displayPeaks.map((peak: PeakFrequency) => (
                   <li key={peak.frequency}>
                     <strong>{Math.round(peak.frequency)} Hz</strong>
                     <span>{peak.magnitudeDb.toFixed(1)} dB</span>
@@ -187,17 +260,53 @@ export default function App() {
         </section>
 
         <div className="controls-grid">
+          <section className="panel mode-panel">
+            <h2>Analysis mode</h2>
+            <fieldset className="source-selector">
+              <legend className="visually-hidden">Choose analysis mode</legend>
+              {LAB_MODES.map((mode) => (
+                <label key={mode} className="source-option">
+                  <input
+                    type="radio"
+                    name="lab-mode"
+                    value={mode}
+                    checked={labMode === mode}
+                    onChange={() => onLabModeChange(mode)}
+                  />
+                  <span>{LAB_MODE_LABELS[mode]}</span>
+                </label>
+              ))}
+            </fieldset>
+            {isSnapshotMode ? (
+              <p className="source-note">
+                Renders one second of mixed sine waves with{" "}
+                <code>OfflineAudioContext</code>, then reads a single analyser
+                frame — like the old Shazizzle oscillator experiment, with a
+                selectable sample rate to explore bin width.
+              </p>
+            ) : (
+              <p className="source-note">
+                Real-time capture from the synthesizer or microphone while the
+                lab is running.
+              </p>
+            )}
+          </section>
+
           <section className="panel source-panel">
             <h2>Input source</h2>
             <fieldset className="source-selector">
               <legend className="visually-hidden">Choose input source</legend>
               {INPUT_SOURCES.map((source) => (
-                <label key={source} className="source-option">
+                <label
+                  key={source}
+                  className={`source-option ${isSnapshotMode && source === "microphone" ? "disabled" : ""}`}
+                >
                   <input
                     type="radio"
                     name="input-source"
                     value={source}
                     checked={inputSource === source}
+                    disabled={isSnapshotMode && source === "microphone"}
                     onChange={() => void setInputSource(source)}
                   />
                   <span>{INPUT_SOURCE_LABELS[source]}</span>
@@ -205,7 +314,7 @@ export default function App() {
               ))}
             </fieldset>
 
-            {inputSource === "microphone" && (
+            {!isSnapshotMode && inputSource === "microphone" && (
               <div className="mic-controls">
                 <p className="mic-note">
                   Click <strong>Start</strong> to request microphone access. Use
@@ -241,15 +350,22 @@ export default function App() {
               </div>
             )}
 
-            {inputSource === "synthesizer" && (
+            {!isSnapshotMode && inputSource === "synthesizer" && (
               <p className="source-note">
                 Mix one or more sine waves below. Peak detection should align
                 with the frequencies you enable.
               </p>
             )}
+
+            {isSnapshotMode && (
+              <p className="source-note">
+                Snapshot mode uses the synthesizer mix only. Configure waves
+                below, then render.
+              </p>
+            )}
           </section>
 
-          {inputSource === "synthesizer" && (
+          {(inputSource === "synthesizer" || isSnapshotMode) && (
             <section className="panel synth-panel">
               <div className="panel-header">
                 <h2>Sine wave generators</h2>
@@ -280,18 +396,43 @@ export default function App() {
             <h2>Analysis</h2>
 
             <div className="analysis-settings">
-              <label>
-                <span>Scope trigger</span>
-                <select
-                  value={triggerMode}
-                  onChange={(e) =>
-                    setTriggerMode(e.target.value as ScopeTriggerMode)
-                  }
-                >
-                  <option value="edge">Edge (stable trace)</option>
-                  <option value="free">Free-running (rolling)</option>
-                </select>
-              </label>
+              {!isSnapshotMode && (
+                <label>
+                  <span>Scope trigger</span>
+                  <select
+                    value={triggerMode}
+                    onChange={(e) =>
+                      setTriggerMode(e.target.value as ScopeTriggerMode)
+                    }
+                  >
+                    <option value="edge">Edge (stable trace)</option>
+                    <option value="free">Free-running (rolling)</option>
+                  </select>
+                </label>
+              )}
+
+              {isSnapshotMode && (
+                <label>
+                  <span>Sample rate</span>
+                  <select
+                    value={snapshotSampleRate}
+                    onChange={(e) =>
+                      setSnapshotSampleRate(
+                        Number(e.target.value) as SnapshotSampleRate
+                      )
+                    }
+                  >
+                    {SNAPSHOT_SAMPLE_RATES.map((rate) => (
+                      <option key={rate} value={rate}>
+                        {rate.toLocaleString()} Hz
+                      </option>
+                    ))}
+                  </select>
+                  <output>
+                    {(snapshotSampleRate / fftSize).toFixed(2)} Hz/bin
+                  </output>
+                </label>
+              )}
 
               <label>
                 <span>FFT engine</span>
@@ -319,22 +460,36 @@ export default function App() {
                   ))}
                 </select>
                 <output>
-                  {(labMeta.sampleRate / fftSize).toFixed(2)} Hz/bin
+                  {(displaySampleRate / fftSize).toFixed(2)} Hz/bin
                 </output>
               </label>
             </div>
 
             <div className="meta">
-              <span>Input: {INPUT_SOURCE_LABELS[inputSource]}</span>
-              <span>Sample rate: {labMeta.sampleRate.toLocaleString()} Hz</span>
+              <span>Mode: {LAB_MODE_LABELS[labMode]}</span>
+              {!isSnapshotMode && (
+                <span>Input: {INPUT_SOURCE_LABELS[inputSource]}</span>
+              )}
+              <span>Sample rate: {displaySampleRate.toLocaleString()} Hz</span>
               <span>FFT size: {fftSize}</span>
               <span>
-                Bin width: {(labMeta.sampleRate / fftSize).toFixed(2)} Hz
+                Bin width: {(displaySampleRate / fftSize).toFixed(2)} Hz
               </span>
               <span>
                 FFT engine: {fftEngine === "custom" ? "Custom" : "Web Audio"}
               </span>
-              <span>Status: {running ? "Running" : "Idle"}</span>
+              <span>
+                Status:{" "}
+                {isSnapshotMode
+                  ? rendering
+                    ? "Rendering"
+                    : snapshot
+                      ? "Snapshot ready"
+                      : "Idle"
+                  : running
+                    ? "Running"
+                    : "Idle"}
+              </span>
             </div>
           </section>
         </div>

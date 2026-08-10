@@ -97,11 +97,16 @@ h3 {
   .analysis-panel {
     grid-column: 1 / -1;
   }
+
+  .mode-panel {
+    grid-column: 1 / -1;
+  }
 }
 
 .source-panel h2,
 .synth-panel h2,
-.analysis-panel h2 {
+.analysis-panel h2,
+.mode-panel h2 {
   margin-bottom: 1rem;
 }
 
@@ -130,6 +135,11 @@ h3 {
 .source-option:has(input:checked) {
   border-color: #3a8f4a;
   background: rgba(31, 90, 47, 0.35);
+}
+
+.source-option.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .source-option input {
@@ -187,6 +197,28 @@ h3 {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.display-placeholder {
+  margin: 0;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #6a8f6a;
+  font-size: 0.875rem;
+  border: 1px dashed rgba(80, 140, 90, 0.25);
+  border-radius: 8px;
+}
+
+.snapshot-error {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: #ffb8b8;
+}
+
+.static-waveform {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .panel {

@@ -10,7 +10,8 @@ import {
 } from "../utils/peak-label-layout";
 
 interface SpectrumAnalyzerProps {
-  analyserRef: RefObject<AnalyserNode | null>;
+  analyserRef?: RefObject<AnalyserNode | null>;
+  frequencyData?: Float32Array | null;
   sampleRate: number;
   peaks: PeakFrequency[];
   active: boolean;
@@ -60,6 +61,7 @@ function buildSpectrumPaths(
 
 export function SpectrumAnalyzer({
   analyserRef,
+  frequencyData = null,
   sampleRate,
   peaks,
   active,
@@ -72,6 +74,7 @@ export function SpectrumAnalyzer({
   const rafRef = useRef(0);
   const frequencyBufferRef = useRef<Float32Array | null>(null);
   const timeBufferRef = useRef<Float32Array | null>(null);
+  const isStatic = frequencyData !== null;
 
   const plotWidth = width - PLOT_LEFT - PLOT_RIGHT_PAD;
   const plotRight = width - PLOT_RIGHT_PAD;
@@ -116,7 +119,21 @@ export function SpectrumAnalyzer({
     [peakMarkers, plotRight, plotTop]
   );
 
+  const staticPaths = useMemo(() => {
+    if (!frequencyData) return null;
+    return buildSpectrumPaths(
+      frequencyData,
+      sampleRate,
+      PLOT_LEFT,
+      plotTop,
+      plotWidth,
+      plotHeight
+    );
+  }, [frequencyData, sampleRate, plotTop, plotWidth, plotHeight]);
+
   useEffect(() => {
+    if (isStatic) return;
+
     if (!active) {
       cancelAnimationFrame(rafRef.current);
       fillPathRef.current?.setAttribute("d", "");
@@ -125,7 +142,7 @@ export function SpectrumAnalyzer({
     }
 
     const tick = () => {
-      const analyser = analyserRef.current;
+      const analyser = analyserRef?.current;
       const fillPathEl = fillPathRef.current;
       const linePathEl = linePathRef.current;
 
@@ -172,6 +189,7 @@ export function SpectrumAnalyzer({
     active,
     analyserRef,
     fftEngine,
+    isStatic,
     sampleRate,
     plotTop,
     plotWidth,
@@ -246,8 +264,16 @@ export function SpectrumAnalyzer({
         );
       })}
 
-      <path ref={fillPathRef} className="spectrum-fill" />
-      <path ref={linePathRef} className="spectrum-line" />
+      <path
+        ref={fillPathRef}
+        d={staticPaths?.fillPath ?? undefined}
+        className="spectrum-fill"
+      />
+      <path
+        ref={linePathRef}
+        d={staticPaths?.linePath ?? undefined}
+        className="spectrum-line"
+      />
 
       {peakMarkers.map((peak) => (
         <line
@@ -282,6 +308,7 @@ export function SpectrumAnalyzer({
 
       <text x={PLOT_LEFT} y={14} className="scope-label">
         FFT {fftEngine === "custom" ? "(custom)" : "(Web Audio)"}
+        {isStatic ? " · snapshot" : ""}
       </text>
       <text
         x={PLOT_LEFT + plotWidth}
