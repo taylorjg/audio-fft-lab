@@ -3,7 +3,7 @@
   "description": "React/TypeScript lab for sine-wave synthesis, live microphone capture, offline FFT snapshots, and oscilloscope visualisation using the Web Audio API",
   "homepage": "https://taylorjg.github.io/audio-fft-lab",
   "private": true,
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
