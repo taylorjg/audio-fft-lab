@@ -1,11 +1,12 @@
-import { findPeaks } from "@app/dsp/find-peaks";
-import { readFrequencyFrame } from "@app/dsp/read-frequency-frame";
 import type {
   FftEngine,
   FftSize,
   SineWaveConfig,
   SnapshotResult,
 } from "@app/types";
+
+import { findPeaks } from "./find-peaks";
+import { readFrequencyFrame } from "./read-frequency-frame";
 
 const RENDER_DURATION_S = 1;
 

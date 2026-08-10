@@ -1,4 +1,4 @@
-import { getFftPlan } from "@app/dsp/fft-plan";
+import { getFftPlan } from "./fft-plan";
 
 export function hannWindow(size: number): Float64Array {
   const window = new Float64Array(size);

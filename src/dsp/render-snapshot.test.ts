@@ -1,4 +1,4 @@
-import { renderSnapshot } from "@app/dsp/render-snapshot";
+import { renderSnapshot } from "./render-snapshot";
 
 const hasOfflineAudio = typeof OfflineAudioContext !== "undefined";
 

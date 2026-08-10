@@ -1,4 +1,4 @@
-import { findPeaks } from "@app/dsp/find-peaks";
+import { findPeaks } from "./find-peaks";
 
 function makeLocalPeakSpectrum(
   length: number,
