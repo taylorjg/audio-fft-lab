@@ -1,6 +1,7 @@
 {
   "name": "audio-fft-lab",
-  "description": "React/TypeScript lab for sine-wave synthesis, real-time FFT spectrum analysis, and oscilloscope visualisation using the Web Audio API",
+  "description": "React/TypeScript lab for sine-wave synthesis, live microphone capture, offline FFT snapshots, and oscilloscope visualisation using the Web Audio API",
+  "homepage": "https://taylorjg.github.io/audio-fft-lab",
   "private": true,
   "version": "0.0.4",
   "type": "module",
@@ -10,7 +11,10 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "test": "vitest run"
+    "test": "vitest run",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
+    "open": "open https://taylorjg.github.io/audio-fft-lab"
   },
   "dependencies": {
     "@teropa/oscilloscope": "^1.0.0",
@@ -32,6 +36,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "eslint-plugin-simple-import-sort": "^14.0.0",
+    "gh-pages": "^6.3.0",
     "globals": "^17.8.0",
     "prettier": "^3.9.6",
     "typescript": "~5.8.3",

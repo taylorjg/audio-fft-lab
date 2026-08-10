@@ -1,4 +1,8 @@
+[![CI/CD](https://github.com/taylorjg/audio-fft-lab/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/taylorjg/audio-fft-lab/actions/workflows/ci-cd.yml)
+
 # Audio FFT Lab
+
+Live demo: [taylorjg.github.io/audio-fft-lab](https://taylorjg.github.io/audio-fft-lab)
 
 A small React/TypeScript experiment for exploring sine-wave synthesis, live microphone capture, offline snapshot rendering, and real-time spectral analysis using the Web Audio API.
 
@@ -33,6 +37,15 @@ Click **Start** to create the audio context (browser may require a user gesture)
 ### Snapshot mode
 
 Switch **Analysis mode** to **Snapshot (offline)**. Configure sine waves and pick a sample rate to explore bin width (`sample rate ÷ FFT size`). The lab renders one second of audio, then displays a static waveform and spectrum — similar to the [Shazizzle oscillator experiment](https://github.com/taylorjg/shazizzle/blob/master/js/client/experiments/oscillatorNodes.js).
+
+## Deploy
+
+The app is published to GitHub Pages on version tags (`v*`). CI builds with `base: /audio-fft-lab/` and deploys the `dist/` folder.
+
+```bash
+npm run deploy   # manual deploy to gh-pages branch
+npm run open     # open the live demo
+```
 
 ## Stack
 

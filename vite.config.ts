@@ -8,6 +8,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  base: "/audio-fft-lab/",
   resolve: {
     alias: [{ find: "@app", replacement: path.resolve(__dirname, "src") }],
   },
