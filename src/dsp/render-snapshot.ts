@@ -20,7 +20,11 @@ export async function renderSnapshot(
     throw new Error("Enable at least one sine wave to render a snapshot.");
   }
 
-  const frameCount = Math.ceil(sampleRate * RENDER_DURATION_S);
+  const signalFrames = Math.ceil(sampleRate * RENDER_DURATION_S);
+  // Pad by one analyser window so the final getFloatTimeDomainData read is
+  // fully inside running oscillators — avoids a flat silence tail at the end.
+  const frameCount = signalFrames + fftSize;
+  const renderDurationS = frameCount / sampleRate;
   const context = new OfflineAudioContext(1, frameCount, sampleRate);
   const mixer = context.createGain();
   const analyser = context.createAnalyser();
@@ -36,7 +40,7 @@ export async function renderSnapshot(
     oscillator.connect(gain);
     gain.connect(mixer);
     oscillator.start(0);
-    oscillator.stop(RENDER_DURATION_S);
+    oscillator.stop(renderDurationS);
   }
 
   mixer.connect(analyser);
@@ -45,8 +49,12 @@ export async function renderSnapshot(
   await context.startRendering();
 
   const frequencyDomain = new Float32Array(analyser.frequencyBinCount);
-  const timeDomain = new Float32Array(analyser.fftSize);
-  readFrequencyFrame(analyser, fftEngine, frequencyDomain, timeDomain);
+  const timeDomainFrame = new Float32Array(analyser.fftSize);
+  analyser.getFloatTimeDomainData(timeDomainFrame);
+  readFrequencyFrame(analyser, fftEngine, frequencyDomain, timeDomainFrame);
+
+  // Match Teropa oscilloscope: one scope window is fftSize / 2 samples.
+  const timeDomain = timeDomainFrame.slice(0, analyser.frequencyBinCount);
 
   return {
     sampleRate,
