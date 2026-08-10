@@ -83,6 +83,112 @@ h3 {
   gap: 1.25rem;
 }
 
+.controls-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .controls-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .source-panel,
+  .analysis-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+.source-panel h2,
+.synth-panel h2,
+.analysis-panel h2 {
+  margin-bottom: 1rem;
+}
+
+.source-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.source-option {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(80, 140, 90, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 0.85rem;
+  color: #9dff9d;
+  cursor: pointer;
+}
+
+.source-option:has(input:checked) {
+  border-color: #3a8f4a;
+  background: rgba(31, 90, 47, 0.35);
+}
+
+.source-option input {
+  accent-color: #4ade80;
+}
+
+.source-note,
+.mic-note {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  color: #6a8f6a;
+  line-height: 1.45;
+}
+
+.mic-controls {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(80, 140, 90, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.mic-controls label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: #6a8f6a;
+}
+
+.mic-controls output {
+  color: #9dff9d;
+  font-size: 0.8rem;
+}
+
+.mic-status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #7a9f7a;
+}
+
+.mic-status-error {
+  color: #ffb8b8;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .panel {
   background: rgba(16, 24, 20, 0.85);
   border: 1px solid rgba(80, 140, 90, 0.2);

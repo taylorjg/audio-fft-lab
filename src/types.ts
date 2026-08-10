@@ -28,6 +28,14 @@ export const DEFAULT_SCOPE_TRIGGER: ScopeTriggerMode = "edge";
 export type FftEngine = "web-audio" | "custom";
 export const DEFAULT_FFT_ENGINE: FftEngine = "web-audio";
 
+export type InputSource = "synthesizer" | "microphone";
+export const DEFAULT_INPUT_SOURCE: InputSource = "synthesizer";
+
+export const INPUT_SOURCE_LABELS: Record<InputSource, string> = {
+  synthesizer: "Synthesizer",
+  microphone: "Microphone",
+};
+
 // Cmaj7 in equal temperament (A4 = 440 Hz): C4, E4, G4, B4
 export const DEFAULT_WAVES: SineWaveConfig[] = [
   { id: "c", frequency: 261.63, amplitude: 0.35, enabled: true },
